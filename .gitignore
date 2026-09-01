@@ -1,0 +1,15 @@
+# macOS
+.DS_Store
+
+# Microsoft Office lock files
+~$*
+
+# journal correspondence — not part of the public code/data repository
+submission_documents/
+
+# figures are not tracked: reproduce_figures.jl regenerates them locally
+figures/
+
+# local run logs
+*.log
+run_full.log
