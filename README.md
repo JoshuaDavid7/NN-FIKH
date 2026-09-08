@@ -103,6 +103,14 @@ not only to reproduce the paper:
    protocols (`TRAIN_PROTS` at the top of `train_nnfikh.jl`) to span your
    amplitude-frequency grid, favoring records that actually yield.
 
+   Two practical notes: training assumes sinusoidal strain input
+   (γ = γ₀ sin ωt, inferred from each record); evaluating the trained model
+   against non-sinusoidal protocols driven by the measured shear rate is
+   supported (`solve_swan_data`), but training on such histories would
+   require adapting `elastic_oop` in `train_nnfikh.jl`. And budget real
+   time: at roughly 15–20 ADAM iterations per hour on a laptop, a
+   well-converged model is an overnight run.
+
 ## Note on the viscoelastic quasiproperty $`\mathbb{V}`$
 
 All simulations in the paper and in this repository — the FIKH baseline and
