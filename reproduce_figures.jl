@@ -42,7 +42,7 @@ sa = readdlm("data/saos_moduli.csv", ',', skipstart=1)
 # 𝕍 = 4616 Pa·s^α, α = 0.33) — the same values used in every simulation in
 # this repository. With this parameter set the single-mode FMG underestimates
 # G″ at these frequencies; G′ (which dominates for this gel-like material,
-# tan δ < 0.12) is captured well.
+# tan δ < 0.12) is captured well. See the note on 𝕍 in README.md.
 G0 = 380.0; α = 0.33; τc = (VV[]/G0)^(1/α)
 ωf = 10 .^ range(-1.2, 1.2, length=200)
 Gstar = [G0*(im*w*τc)^α/(1+(im*w*τc)^α) for w in ωf]

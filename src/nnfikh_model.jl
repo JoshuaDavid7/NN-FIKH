@@ -22,7 +22,8 @@ const gm = 380
 rng = StableRNG(1111)
 u0 = [0.0, 0.0, 0.0, 0.0, 1.0]
 const NN_ON = Ref(true)   # false => analytic FIKH (neural terms off) = Fig. 3 baseline
-const VV = Ref(4616.0)    # 𝕍 quasiproperty [Pa·s^α] (τ_c = (𝕍/G)^(1/α) = 1933 s, as in the paper)
+const VV = Ref(4616.0)    # 𝕍 quasiproperty [Pa·s^α] (τ_c = (𝕍/G)^(1/α) = 1933 s) — used for ALL
+                          # simulations in the paper; see "Note on the viscoelastic quasiproperty 𝕍" in README.md
 const DATADIR = Ref("data/laos/")  # folder holding the LAOS csv files 1.csv … 24.csv
 const N_CYCLES = Ref(9.0) # number of oscillation cycles used for data window + model solve (training/eval)
 const K1 = Ref(0.08)      # 1/τ_thix [s⁻¹]; k_- = 0.59*K1 = 0.047 (as in the paper)

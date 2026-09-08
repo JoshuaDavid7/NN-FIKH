@@ -111,6 +111,27 @@ with TRBDF2 (OrdinaryDiffEq.jl) and a Caputo fractional derivative of order
   `OrdinaryDiffEq, FractionalCalculus, JLD2, ComponentArrays, Lux, NNlib,
   StableRNGs, Interpolations, Plots, DelimitedFiles, Printf, Statistics`
 
+## Note on the viscoelastic quasiproperty 𝕍
+
+All simulations in the paper and in this repository — the FIKH baseline and
+the NN-FIKH model alike — use one fixed parameter set, including
+𝕍 = 4616 Pa·sᵅ (τ_c = (𝕍/G)^(1/α) ≈ 1933 s). Because every improvement
+reported in the paper is a relative comparison between the two models at this
+shared, fixed parameter set, the results and conclusions do not depend on
+this choice.
+
+For completeness: a transcription error occurred during the sequential
+parameter estimation. The value of 𝕍 that best fits the small-amplitude
+(SAOS) moduli of Fig. 1(a) — in particular the loss modulus G″ — is
+𝕍 ≈ 1616 Pa·sᵅ (τ_c ≈ 80 s), while 𝕍 = 4616 Pa·sᵅ was carried into all
+subsequent dynamic simulations. This is why the G″ curve produced by
+`reproduce_figures.jl` for Fig. 1(a) lies below the data. Users who prefer
+the SAOS-optimal value can set `VV[] = 1616.0` in `src/nnfikh_model.jl` and
+retrain the network (the trained networks provided here correspond to
+𝕍 = 4616); comparable relative improvements of NN-FIKH over FIKH are
+expected, since the learned corrections adapt to whichever base parameter
+set is held fixed.
+
 ## Notes on provenance
 
 * The two files in `Example trained models/` are the final trained networks. `run52` is the
