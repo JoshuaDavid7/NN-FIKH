@@ -134,7 +134,7 @@ end
 
 # ----------------------- evaluation in the full model ------------------------
 function eval_full(θ)
-    N_CYCLES[] = 9.0; load_data!()
+    N_CYCLES[] = N_CYC; load_data!()
     NN_ON[] = true;  Lnn, _ = total_loss(θ)
     NN_ON[] = false; Lfk, _ = total_loss(θ); NN_ON[] = true
     @printf("full-model oscillatory SSE:  NN-FIKH = %.4f   FIKH = %.4f   improvement = %.1f%%\n",
