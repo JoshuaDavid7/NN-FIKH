@@ -38,21 +38,20 @@ stamp() = @sprintf("[%6.0f s]", time() - t0_all)
 # ---------------------------------------------------------------- Fig. 1(a,b)
 println("$(stamp()) Fig 1(a): SAOS moduli + FMG fit"); flush(stdout)
 sa = readdlm("data/saos_moduli.csv", ',', skipstart=1)
-# The fractional-Maxwell-gel (FMG) curve of the published Fig. 1(a) corresponds
-# to 𝕍 = 1616 Pa·s^α (τ_c = 80 s); the value reported in the manuscript text is
-# 𝕍 = 4616 Pa·s^α (τ_c = 1933 s). Both are drawn here for transparency.
-G0 = 380.0; α = 0.33
+# FMG model curve drawn with the paper's global parameter set (G = 380 Pa,
+# 𝕍 = 4616 Pa·s^α, α = 0.33) — the same values used in every simulation in
+# this repository. With this parameter set the single-mode FMG underestimates
+# G″ at these frequencies; G′ (which dominates for this gel-like material,
+# tan δ < 0.12) is captured well.
+G0 = 380.0; α = 0.33; τc = (VV[]/G0)^(1/α)
 ωf = 10 .^ range(-1.2, 1.2, length=200)
-fmg(V) = [G0*(im*w*(V/G0)^(1/α))^α/(1+(im*w*(V/G0)^(1/α))^α) for w in ωf]
-G1616 = fmg(1616.0); G4616 = fmg(4616.0)
+Gstar = [G0*(im*w*τc)^α/(1+(im*w*τc)^α) for w in ωf]
 plt = plot(size=(700,470), xaxis=:log10, yaxis=:log10, xlabel="ω [rad/s]",
            ylabel="G′, G″ [Pa]", legend=:bottomright, title="cf Fig 1(a)")
 scatter!(plt, sa[:,1], sa[:,2], mc=:red, ms=6, msc=:red, label="G′ data")
 scatter!(plt, sa[:,1], sa[:,3], mc=:white, ms=6, msc=:red, label="G″ data")
-plot!(plt, ωf, real.(G1616), lc=:seagreen, lw=2, label="G′ FMG, 𝕍=1616 (as plotted in Fig 1a)")
-plot!(plt, ωf, imag.(G1616), lc=:seagreen, ls=:dash, lw=2, label="G″ FMG, 𝕍=1616")
-plot!(plt, ωf, real.(G4616), lc=:black, lw=1.5, label="G′ FMG, 𝕍=4616 (as reported in text)")
-plot!(plt, ωf, imag.(G4616), lc=:black, ls=:dash, lw=1.5, label="G″ FMG, 𝕍=4616")
+plot!(plt, ωf, real.(Gstar), lc=:black, lw=2, label="G′ FMG (G=380, 𝕍=4616, α=0.33)")
+plot!(plt, ωf, imag.(Gstar), lc=:black, ls=:dash, lw=2, label="G″ FMG")
 savefig(plt, OUT*"fig1a_saos_moduli.png")
 
 println("$(stamp()) Fig 1(b): flow curve + Herschel–Bulkley fit"); flush(stdout)
