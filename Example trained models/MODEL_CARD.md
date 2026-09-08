@@ -24,7 +24,8 @@ using JLD2, ComponentArrays
 ```
 
 The 11 physical FIKH parameters are **not** stored in these files — they are
-fixed constants in `src/nnfikh_model.jl`:
+configurable `Ref` values at the top of `src/nnfikh_model.jl`, defaulting to
+the paper's Laponite set:
 {G, 𝕍, α, 𝕂, n, 1/τ_thix, k₋, σ_p⁰, C, q, m} =
 {380 Pa, 4616 Pa·sᵅ, 0.33, 4.66 Pa·sⁿ, 0.34, 0.08 s⁻¹, 0.047, 15 Pa, 88 Pa,
 3.67, 0.49}, as reported in the paper.

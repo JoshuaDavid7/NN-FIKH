@@ -6,7 +6,8 @@ This repository contains the NN-FIKH constitutive model (**N**eural
 **N**etwork **F**ractional **I**sotropic **K**inematic **H**ardening),
 example trained networks, and the experimental rheological data for the
 3.5 wt.% Laponite dispersion studied in the paper, together with a script
-that regenerates the model figures of the paper.
+that regenerates the model figures of the paper and a training script for
+applying the framework to your own data.
 
 ## Quick start
 
@@ -27,6 +28,7 @@ runs, e.g. the first-cycle stress peak at γ₀ = 500%, ω = 5 rad/s
 
 ```
 ├── reproduce_figures.jl      driver — regenerates the model figures
+├── train_nnfikh.jl           train the correction network (paper data or your own)
 ├── src/
 │   └── nnfikh_model.jl       the NN-FIKH model: equations, data loaders, solvers
 ├── Example trained models/
@@ -65,6 +67,41 @@ network, with no retraining, predicts the sawtooth SWAN protocol. Setting
 recovering the analytic FIKH baseline — every figure comparison uses the
 same fixed parameter set for both models. The stiff fractional ODE system
 (Caputo derivative of order 1−α = 0.67) is integrated with TRBDF2.
+
+## Using NN-FIKH on your own data
+
+The repository is set up so the framework can be applied to other materials,
+not only to reproduce the paper:
+
+1. **Format your data.** Export your oscillatory tests as CSV files with the
+   column layout in `data/DATA_DICTIONARY.md`
+   (`time [s], strain [%], stress [Pa], (unused), shear rate [1/s]`), name
+   them `1.csv … M.csv`, point `DATADIR[]` in `src/nnfikh_model.jl` at their
+   folder, and set `N_train = M`.
+
+2. **Fit your material's parameters.** The eleven FIKH parameters live at the
+   top of `src/nnfikh_model.jl` as documented `Ref` values (`GG`, `VV`,
+   `ALFA`, `KK`, `NEXP`, `K1`, `KRAT`, `SP0`, `CC`, `CQ`, `MM`), currently
+   set to the Laponite values of the paper. Estimate them for your material
+   the way the paper does: {G, 𝕍, α} from a SAOS frequency sweep, the
+   plastic-flow and yield parameters from a steady flow curve, and the
+   hardening/thixotropy parameters from the oscillatory data.
+
+3. **Train the network:**
+   ```bash
+   julia --project=. train_nnfikh.jl cal          # verify the pipeline, time one gradient
+   julia --project=. train_nnfikh.jl run 2.0      # train for 2 h (checkpoints continuously)
+   julia --project=. train_nnfikh.jl eval         # compare against the FIKH baseline
+   ```
+   Training follows the paper's recipe: the network starts at zero output
+   (the analytic FIKH model) and ADAM learns corrections in the elastic
+   limit of the framework, with a reverse-mode adjoint through the stiff
+   solver; the result is evaluated in the full fractional model. Best
+   weights are saved to `Example trained models/my_model.jld2` with the
+   same key (`"θi"`) the driver loads, so pointing `reproduce_figures.jl`
+   at your file plots your model with no other changes. Pick the training
+   protocols (`TRAIN_PROTS` at the top of `train_nnfikh.jl`) to span your
+   amplitude-frequency grid, favoring records that actually yield.
 
 ## Note on the viscoelastic quasiproperty $`\mathbb{V}`$
 

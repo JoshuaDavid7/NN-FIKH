@@ -22,11 +22,32 @@ const gm = 380
 rng = StableRNG(1111)
 u0 = [0.0, 0.0, 0.0, 0.0, 1.0]
 const NN_ON = Ref(true)   # false => analytic FIKH (neural terms off) = Fig. 3 baseline
-const VV = Ref(4616.0)    # 𝕍 quasiproperty [Pa·s^α] (τ_c = (𝕍/G)^(1/α) = 1933 s) — used for ALL
-                          # simulations in the paper; see "Note on the viscoelastic quasiproperty 𝕍" in README.md
 const DATADIR = Ref("data/laos/")  # folder holding the LAOS csv files 1.csv … 24.csv
 const N_CYCLES = Ref(9.0) # number of oscillation cycles used for data window + model solve (training/eval)
-const K1 = Ref(0.08)      # 1/τ_thix [s⁻¹]; k_- = 0.59*K1 = 0.047 (as in the paper)
+
+# ---- material parameters (defaults: 3.5 wt.% Laponite, as in the paper) ----
+# To apply the model to a different material, fit these to your own SAOS,
+# steady-flow-curve, and oscillatory data (see README, "Using NN-FIKH on your
+# own data") and change the values here — or set the Refs from your own script,
+# e.g. `GG[] = 250.0`, after including this file.
+const GG   = Ref(380.0)   # G      elastic modulus [Pa]
+const VV   = Ref(4616.0)  # 𝕍      fractional quasiproperty [Pa·s^α]; τ_c = (𝕍/G)^(1/α)
+const ALFA = Ref(0.33)    # α      fractional order (Caputo derivative order used = 1 − α)
+const KK   = Ref(4.66)    # 𝕂      plastic-flow consistency [Pa·s^n]
+const NEXP = Ref(0.34)    # n      plastic-flow exponent
+const K1   = Ref(0.08)    # 1/τ_thix  structure build-up rate [s⁻¹]
+const KRAT = Ref(0.59)    # k_- / (1/τ_thix)  ⇒ k_- = KRAT*K1 (= 0.047 for the paper)
+const SP0  = Ref(15.0)    # σ_p⁰   yield-stress scale [Pa]
+const CC   = Ref(88.0)    # C      back-stress modulus [Pa]
+const CQ   = Ref(24.0)    # C/q    ratio  ⇒ q = C/(C/q) = 3.67
+const MM   = Ref(0.49)    # m      hardening exponent
+
+# unpack the working (normalized) parameter values used by the ODE right-hand sides
+@inline function matpars()
+    G = GG[]/gm; V = VV[]/(gm*tm); k = KK[]/(gm*tm); n = NEXP[]
+    k1 = K1[]*tm; k2 = KRAT[]*k1; C = CC[]/gm; q = CC[]/CQ[]; m = MM[]; k3 = SP0[]/gm
+    (G, V, k, n, k1, k2, C, q, m, k3)
+end
 
 nn_lambda = Lux.Chain(Lux.Dense(5, 14, tanh), Lux.Dense(14, 14, tanh),
                       Lux.Dense(14, 14, tanh), Lux.Dense(14, 3))
@@ -34,8 +55,7 @@ _p0, st1 = Lux.setup(rng, nn_lambda)
 
 function ude_mikh!(du, u, p, t, ampfreq)
     gp, gv, σ, A, λ = u
-    G = 380/gm; V = VV[]/(gm*tm); k = 4.66/(gm*tm); n = 0.34
-    k1 = K1[]*tm; k2 = 0.59*k1; C = 88/gm; q = C/24*gm; m = 0.49; k3 = 15/gm
+    G, V, k, n, k1, k2, C, q, m, k3 = matpars()
     if abs(σ - C*A) < k3*λ
         du[1] = 0.0
     else
@@ -45,7 +65,7 @@ function ude_mikh!(du, u, p, t, ampfreq)
     inputs_l = [abs(A), abs(du[1]), abs(σ), abs(λ), abs(gdot(t))]
     nn_l = NN_ON[] ? nn_lambda(inputs_l, p, st1)[1] : (0.0, 0.0, 0.0)
     du[2] = gdot(t) - du[1]
-    du[3] = -G/V*fracdiff(σ, 0.67, t, 0.000001, Caputo_Piecewise()) + G*du[2]
+    du[3] = -G/V*fracdiff(σ, 1.0 - ALFA[], t, 0.000001, Caputo_Piecewise()) + G*du[2]
     du[4] = du[1] - q^m*(A^2)^(m/2)*abs(du[1])*sign(A) + nn_l[1]*abs(du[1])*sign(A)
     du[5] = (k1 + nn_l[3])*(1 - λ) - k2*λ*abs(du[1]) - nn_l[2]*abs(du[1])*λ
 end
@@ -119,8 +139,7 @@ end
 swan_rate(t) = (mod(t, 2*pi) < pi ? 1.0 : -1.0)   # ω0=1 rad/s square-wave rate (triangle strain)
 function teady_mikh!(du, u, p, t, p_true)
     gp, gv, σ, A, λ = u
-    G = 380/gm; V = VV[]/(gm*tm); k = 4.66/(gm*tm); n = 0.34
-    k1 = K1[]*tm; k2 = 0.59*k1; C = 88/gm; q = C/24*gm; m = 0.49; k3 = 15/gm
+    G, V, k, n, k1, k2, C, q, m, k3 = matpars()
     if abs(σ - C*A) < k3*λ
         du[1] = 0.0
     else
@@ -130,7 +149,7 @@ function teady_mikh!(du, u, p, t, p_true)
     inputs_l = [abs(A), abs(du[1]), abs(σ), abs(λ), abs(gdot(t))]
     nn_l = NN_ON[] ? nn_lambda(inputs_l, p, st1)[1] : (0.0, 0.0, 0.0)
     du[2] = gdot(t) - du[1]
-    du[3] = -G/V*fracdiff(σ, 0.67, t, 0.000001, Caputo_Piecewise()) + G*du[2]
+    du[3] = -G/V*fracdiff(σ, 1.0 - ALFA[], t, 0.000001, Caputo_Piecewise()) + G*du[2]
     du[4] = du[1] - q^m*(A^2)^(m/2)*abs(du[1])*sign(A) + nn_l[1]*abs(du[1])*sign(A)
     du[5] = (k1 + nn_l[3])*(1 - λ) - k2*λ*abs(du[1]) - nn_l[2]*abs(du[1])*λ
 end
@@ -171,8 +190,7 @@ end
 gdot_data = Ref{Any}(nothing)
 function teady_data!(du, u, p, t, p_true)
     gp, gv, σ, A, λ = u
-    G = 380/gm; V = VV[]/(gm*tm); k = 4.66/(gm*tm); n = 0.34
-    k1 = K1[]*tm; k2 = 0.59*k1; C = 88/gm; q = C/24*gm; m = 0.49; k3 = 15/gm
+    G, V, k, n, k1, k2, C, q, m, k3 = matpars()
     if abs(σ - C*A) < k3*λ
         du[1] = 0.0
     else
@@ -182,7 +200,7 @@ function teady_data!(du, u, p, t, p_true)
     inputs_l = [abs(A), abs(du[1]), abs(σ), abs(λ), abs(gdot(t))]
     nn_l = NN_ON[] ? nn_lambda(inputs_l, p, st1)[1] : (0.0, 0.0, 0.0)
     du[2] = gdot(t) - du[1]
-    du[3] = -G/V*fracdiff(σ, 0.67, t, 0.000001, Caputo_Piecewise()) + G*du[2]
+    du[3] = -G/V*fracdiff(σ, 1.0 - ALFA[], t, 0.000001, Caputo_Piecewise()) + G*du[2]
     du[4] = du[1] - q^m*(A^2)^(m/2)*abs(du[1])*sign(A) + nn_l[1]*abs(du[1])*sign(A)
     du[5] = (k1 + nn_l[3])*(1 - λ) - k2*λ*abs(du[1]) - nn_l[2]*abs(du[1])*λ
 end
@@ -242,8 +260,7 @@ end
 # ---- constant-rate startup → steady state (flow curve, Figs 1(b), 3(c), 4(c)) ----
 function steady_mikh!(du, u, p, t, rate)
     gp, gv, σ, A, λ = u
-    G = 380/gm; V = VV[]/(gm*tm); k = 4.66/(gm*tm); n = 0.34
-    k1 = K1[]*tm; k2 = 0.59*k1; C = 88/gm; q = C/24*gm; m = 0.49; k3 = 15/gm
+    G, V, k, n, k1, k2, C, q, m, k3 = matpars()
     if abs(σ - C*A) < k3*λ
         du[1] = 0.0
     else
@@ -252,7 +269,7 @@ function steady_mikh!(du, u, p, t, rate)
     inputs_l = [abs(A), abs(du[1]), abs(σ), abs(λ), abs(rate)]
     nn_l = NN_ON[] ? nn_lambda(inputs_l, p, st1)[1] : (0.0, 0.0, 0.0)
     du[2] = rate - du[1]
-    du[3] = -G/V*fracdiff(σ, 0.67, t, 0.000001, Caputo_Piecewise()) + G*du[2]
+    du[3] = -G/V*fracdiff(σ, 1.0 - ALFA[], t, 0.000001, Caputo_Piecewise()) + G*du[2]
     du[4] = du[1] - q^m*(A^2)^(m/2)*abs(du[1])*sign(A) + nn_l[1]*abs(du[1])*sign(A)
     du[5] = (k1 + nn_l[3])*(1 - λ) - k2*λ*abs(du[1]) - nn_l[2]*abs(du[1])*λ
 end
