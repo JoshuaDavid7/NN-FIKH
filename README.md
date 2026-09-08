@@ -2,13 +2,11 @@
 
 J. D. J. Rathinaraj, K. R. Lennon & G. H. McKinley (PNAS Nexus).
 
-This repository contains the trained neural-network constitutive model
-(**NN-FIKH** — Neural Network Fractional Isotropic Kinematic Hardening), the
-experimental rheological data for the 3.5 wt.% Laponite dispersion studied in
-the paper, and a single script that **reproduces the model figures of the
-paper and its Supplementary Information**.
-
----
+This repository contains the NN-FIKH constitutive model (**N**eural
+**N**etwork **F**ractional **I**sotropic **K**inematic **H**ardening),
+example trained networks, and the experimental rheological data for the
+3.5 wt.% Laponite dispersion studied in the paper, together with a script
+that regenerates the model figures of the paper.
 
 ## Quick start
 
@@ -17,99 +15,56 @@ julia --project=. -e 'using Pkg; Pkg.instantiate()'   # first time only
 julia --project=. reproduce_figures.jl
 ```
 
-(Tested with Julia 1.8. Plain `julia reproduce_figures.jl` also works if the
-required packages are installed in your default environment.)
-
-The script regenerates the panels of Figs. 1, 3, 4, 5, 6 and S4 into
-`figures/reproduced/`, printing progress and key numbers as it goes.
-**Total runtime is roughly 5–10 minutes** (mostly Julia package loading and
-compilation; the 90 or so fractional-ODE solves themselves take under a
-minute on a modern laptop).
+Tested with Julia 1.8; total runtime is roughly 5–10 minutes (mostly package
+loading and compilation). The script writes the panels of Figs. 1, 3, 4, 5,
+6 and S4 to `figures/reproduced/` — the header of `reproduce_figures.jl`
+lists the output-file-to-figure mapping — and prints key checkpoints as it
+runs, e.g. the first-cycle stress peak at γ₀ = 500%, ω = 5 rad/s
+(data ≈ 72 Pa, NN-FIKH ≈ 71 Pa, FIKH ≈ 51 Pa) and the SWAN overshoot at
+γ̇₀ = ±38 s⁻¹ (data ≈ 77 Pa, NN-FIKH ≈ 74 Pa, FIKH ≈ 53 Pa).
 
 ## Repository structure
 
 ```
-├── reproduce_figures.jl      driver — regenerates all model figures (see table below)
+├── reproduce_figures.jl      driver — regenerates the model figures
 ├── src/
-│   └── nnfikh_model.jl       the NN-FIKH model: ODE right-hand sides, data loaders, solvers
+│   └── nnfikh_model.jl       the NN-FIKH model: equations, data loaders, solvers
 ├── Example trained models/
-│   ├── twocycle_5input_run52.jld2   THE trained network of the paper (549 parameters)
-│   ├── twocycle_5input_run36.jld2   independently trained comparison network
+│   ├── twocycle_5input_run52.jld2   trained network (default in the driver)
+│   ├── twocycle_5input_run36.jld2   independently trained network
 │   └── MODEL_CARD.md         architecture, inputs/outputs, how to load
 ├── data/
-│   ├── laos/                 22 oscillatory records: 18 training (Pipkin grid) + 4 test (ω = 3 rad/s)
+│   ├── laos/                 22 oscillatory records: 18 training + 4 test (ω = 3 rad/s)
 │   ├── swan/                 3 SWAN sawtooth records (γ̇₀ = ±0.38, ±38, ±380 s⁻¹)
 │   ├── saos_moduli.csv       SAOS frequency sweep (G′, G″) — Fig. 1(a)
 │   ├── flow_curve_steady.csv steady flow curve — Figs. 1(b), 3(c), 4(c)
 │   └── DATA_DICTIONARY.md    per-file protocol table and column definitions
-├── figures/reproduced/       created by reproduce_figures.jl (not tracked in git)
-├── Project.toml              Julia dependencies (with tested compat bounds)
-└── submission_documents/     journal correspondence (excluded from git via .gitignore)
+└── Project.toml              Julia dependencies
 ```
 
-## Figure-by-figure reproduction map
+## Trained models
 
-| Paper figure | Output file (generated in `figures/reproduced/`) | Data used | Model |
-|---|---|---|---|
-| Fig. 1(a) SAOS moduli + FMG fit | `fig1a_saos_moduli.png` | `saos_moduli.csv` | analytic FMG (G=380 Pa, 𝕍=4616 Pa·sᵅ, α=0.33 — the paper's global parameter set) |
-| Fig. 1(b) flow curve + HB fit | `fig1b_flow_curve_HB.png` | `flow_curve_steady.csv` | analytic (σ_y=38 Pa, K_HB=0.36, n=0.67) |
-| Fig. 3(a) FIKH Pipkin grid | `fig3a_pipkin_FIKH.png` | `laos/1–18.csv` | run52, network **off** |
-| Fig. 3(b) FIKH test predictions | `fig3b_test_FIKH.png` | `laos/19,21,22,24.csv` | run52, network off |
-| Figs. 3(c)/4(c) flow curve vs models | `fig3c4c_flow_curve_models.png` | `flow_curve_steady.csv` | both |
-| Figs. 3(d)/4(d) error residuals ε₁, ε₉ | `fig3d4d_error_bars.png` | all LAOS records | both |
-| Fig. 4(a) NN-FIKH Pipkin grid | `fig4a_pipkin_NNFIKH.png` | `laos/1–18.csv` | run52 |
-| Fig. 4(b) NN-FIKH test predictions | `fig4b_test_NNFIKH.png` | `laos/19,21,22,24.csv` | run52 |
-| Fig. 4(e) σ(t) at γ₀=500%, ω=5 | `fig4e_timeseries.png` | `laos/10.csv` | both |
-| Fig. 5(d,f,h) SWAN stress responses | `fig5_swan_timeseries.png` | `swan/*.csv` | run52 |
-| Fig. 5(e,g,i) SWAN Lissajous | `fig5_swan_lissajous.png` | `swan/*.csv` | run52 |
-| Fig. 6 internal variables λ(t), A(t) | `fig6_internal_variables.png` | protocols 500%/3% @ ω=5 | both |
-| Fig. S4 SWAN: FIKH vs NN-FIKH | `figS4_swan_FIKH_vs_NNFIKH.png` | `swan/*.csv` | both |
+`Example trained models/` provides two independently trained networks with
+identical architecture. Both closely reproduce the NN-FIKH results of the
+paper, and their predictions nearly coincide — comparing them illustrates
+how tightly the embedded physics constrains the learned correction. The
+driver loads `run52` by default; to use the other, change the filename on
+the `load(...)` line of `reproduce_figures.jl`. Details in
+`Example trained models/MODEL_CARD.md`.
 
-“Model: both” means the figure compares the analytic FIKH model (the same
-code with the neural-network terms switched off, `NN_ON[] = false`) against
-the full NN-FIKH model.
+## The model in brief
 
-Not generated by this script: Fig. 1(c) (an illustrative Lissajous curve of
-data reproduced within the grids), Fig. 2 (schematic), and SI Figs. S1–S3
-(analytic Elastic-IKH startup simulations and a schematic Pipkin diagram —
-fully specified by equations (S1)–(S4) of the Supplementary Information).
-
-## Expected key outputs (for verification)
-
-The script prints these checkpoints; values you should observe:
-
-* **Fig. 4(e)** first-cycle stress peak (γ₀ = 500%, ω = 5 rad/s):
-  data ≈ **72 Pa**, NN-FIKH ≈ **70–71 Pa**, FIKH ≈ **51 Pa**
-  (NN-FIKH captures the startup overshoot; FIKH underpredicts it).
-* **SWAN** (γ̇₀ = ±38 s⁻¹, Fig. S4): first-cycle overshoot
-  data ≈ **77 Pa**, NN-FIKH ≈ **74 Pa**, FIKH ≈ **53 Pa**.
-* **Error residuals** (Figs. 3(d)/4(d) style, ε per cycle normalized by
-  (C/q)² = 24², SAOS records excluded from the training average):
-  FIKH training ε₁ ≈ **0.13** vs NN-FIKH ≈ **0.04**;
-  FIKH testing ε₁ ≈ **0.05** vs NN-FIKH ≈ **0.02**
-  (the NN-FIKH model roughly halves to thirds the first-cycle error).
-
-## The model in one paragraph
-
-The FIKH constitutive framework (fractional Maxwell viscoelasticity +
-isotropic/kinematic hardening + thixotropic structure kinetics) is augmented
-with a small fully-connected network (5→14→14→14→3, tanh, 549 parameters)
-whose three outputs enter only the evolution equations of the two internal
-variables — the back strain A(t) and the structure parameter λ(t) — as
-bounded corrective terms. The 11 physical parameters are fixed at the values
-identified from independent experiments (see `Example trained models/MODEL_CARD.md`); the
-network is trained on the oscillatory data only, and the **same network with
-no retraining** predicts the sawtooth SWAN protocol. The model state is
-u = [γ_p, γ_ve, σ, A, λ] and the stiff fractional ODE system is integrated
-with TRBDF2 (OrdinaryDiffEq.jl) and a Caputo fractional derivative of order
-1−α = 0.67 (FractionalCalculus.jl).
-
-## Software requirements
-
-* Julia 1.8 (tested with 1.8.x on macOS)
-* Packages (see `Project.toml` for tested versions):
-  `OrdinaryDiffEq, FractionalCalculus, JLD2, ComponentArrays, Lux, NNlib,
-  StableRNGs, Interpolations, Plots, DelimitedFiles, Printf, Statistics`
+The FIKH framework (fractional Maxwell viscoelasticity + isotropic/kinematic
+hardening + thixotropic structure kinetics) is augmented with a small
+fully-connected network (5→14→14→14→3, tanh, 549 parameters) whose outputs
+enter only the evolution equations of the back strain A(t) and the structure
+parameter λ(t) as bounded corrective terms. The 11 physical parameters are
+held fixed; the network is trained on oscillatory data only, and the same
+network, with no retraining, predicts the sawtooth SWAN protocol. Setting
+`NN_ON[] = false` in `src/nnfikh_model.jl` switches the neural terms off,
+recovering the analytic FIKH baseline — every figure comparison uses the
+same fixed parameter set for both models. The stiff fractional ODE system
+(Caputo derivative of order 1−α = 0.67) is integrated with TRBDF2.
 
 ## Note on the viscoelastic quasiproperty 𝕍
 
@@ -131,18 +86,6 @@ retrain the network (the trained networks provided here correspond to
 𝕍 = 4616); comparable relative improvements of NN-FIKH over FIKH are
 expected, since the learned corrections adapt to whichever base parameter
 set is held fixed.
-
-## Notes on provenance
-
-* The two files in `Example trained models/` are the final trained networks. `run52` is the
-  network behind every NN-FIKH curve in the paper; `run36` exists only for
-  the identifiability comparison in the response to the reviewers
-  (see `Example trained models/MODEL_CARD.md`).
-* `data/saos_moduli.csv` and `data/flow_curve_steady.csv` were recovered
-  point-for-point from the original MATLAB sources of Figs. 1(a)/1(b).
-* Development history (original training scripts, superseded documents,
-  repeat measurements not used in the paper) is preserved outside this
-  repository in a separate archive folder.
 
 ## Citation
 

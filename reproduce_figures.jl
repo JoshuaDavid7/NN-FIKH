@@ -20,8 +20,9 @@
 #    fig6_internal_variables.png      Fig. 6  λ(t) and A(t), FIKH vs NN-FIKH
 #    figS4_swan_FIKH_vs_NNFIKH.png    Fig. S4  SWAN: FIKH vs NN-FIKH vs data
 #
-#  The trained network used everywhere is Example trained models/twocycle_5input_run52.jld2 —
-#  the single network of the paper ("one network, no retraining").
+#  Loads Example trained models/twocycle_5input_run52.jld2 by default; the
+#  same network is used for every figure ("one network, no retraining").
+#  See Example trained models/MODEL_CARD.md to swap in the other network.
 #  Runtime: ~5–10 min (mostly Julia compilation; solves take under a minute).
 # =============================================================================
 cd(@__DIR__)
