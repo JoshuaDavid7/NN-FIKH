@@ -66,24 +66,33 @@ recovering the analytic FIKH baseline — every figure comparison uses the
 same fixed parameter set for both models. The stiff fractional ODE system
 (Caputo derivative of order 1−α = 0.67) is integrated with TRBDF2.
 
-## Note on the viscoelastic quasiproperty 𝕍
+## Note on the viscoelastic quasiproperty $`\mathbb{V}`$
 
-All simulations in the paper and in this repository, the FIKH baseline and
-the NN-FIKH model alike use one fixed parameter set as follows: \{$\mathbb{G}, \mathbb{V}, \alpha, \mathbb{K}, n,    1/\tau_{thix}, k_{-}, \sigma_p^0, C, q, m$\} = \{380 Pa, 4616 Pa$\cdot \mathrm{s}^\alpha$, 0.33, 4.66 Pa$\cdot \mathrm{s}^n$, 0.34, 0.08 $\mathrm{s}^{-1}$, 0.047, 15 Pa, 88 Pa, 3.67, 0.49\}. Because every improvement reported in the paper is a relative comparison between the two models at this
-shared, fixed parameter set, the results and conclusions do not depend on
-this choice.
+All simulations in the paper and in this repository — the FIKH baseline and
+the NN-FIKH model alike — use one fixed parameter set:
+
+```math
+\{\mathbb{G},\ \mathbb{V},\ \alpha,\ \mathbb{K},\ n,\ 1/\tau_{\mathrm{thix}},\ k_-,\ \sigma_p^0,\ C,\ q,\ m\}
+= \{380\ \mathrm{Pa},\ 4616\ \mathrm{Pa\,s}^{\alpha},\ 0.33,\ 4.66\ \mathrm{Pa\,s}^{n},\ 0.34,\ 0.08\ \mathrm{s}^{-1},\ 0.047,\ 15\ \mathrm{Pa},\ 88\ \mathrm{Pa},\ 3.67,\ 0.49\}.
+```
+
+Because every improvement reported in the paper is a relative comparison
+between the two models at this shared, fixed parameter set, the results and
+conclusions do not depend on this choice.
 
 For completeness: a transcription error occurred during the sequential
-parameter estimation. The value of 𝕍 that best fits the small-amplitude
-(SAOS) moduli of Fig. 1(a) — in particular the loss modulus G″ — is
-𝕍 ≈ 1616 Pa·sᵅ (τ_c ≈ 80 s), while 𝕍 = 4616 Pa·sᵅ was carried into all
-subsequent dynamic simulations. This is why the G″ curve produced by
+parameter estimation. The value of $`\mathbb{V}`$ that best fits the
+small-amplitude (SAOS) moduli of Fig. 1(a) — in particular the loss modulus
+$`G''`$ — is $`\mathbb{V} \approx 1616\ \mathrm{Pa\,s}^{\alpha}`$
+($`\tau_c \approx 80`$ s), while $`\mathbb{V} = 4616\ \mathrm{Pa\,s}^{\alpha}`$
+($`\tau_c \approx 1933`$ s) was carried into all subsequent dynamic
+simulations. This is why the $`G''`$ curve produced by
 `reproduce_figures.jl` for Fig. 1(a) lies below the data. Users who prefer
 the SAOS-optimal value can set `VV[] = 1616.0` in `src/nnfikh_model.jl` and
 retrain the network (the trained networks provided here correspond to
-𝕍 = 4616). Comparable relative improvements of NN-FIKH over FIKH are
-expected, since the learned corrections adapt to whichever base parameter
-set is held fixed.
+$`\mathbb{V} = 4616\ \mathrm{Pa\,s}^{\alpha}`$). Comparable relative
+improvements of NN-FIKH over FIKH are expected, since the learned
+corrections adapt to whichever base parameter set is held fixed.
 
 ## Citation
 
