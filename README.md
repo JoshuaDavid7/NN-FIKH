@@ -15,7 +15,7 @@ julia --project=. -e 'using Pkg; Pkg.instantiate()'   # first time only
 julia --project=. reproduce_figures.jl
 ```
 
-Tested with Julia 1.8; total runtime is roughly 5–10 minutes (mostly package
+Total runtime is roughly 5–10 minutes (mostly package
 loading and compilation). The script writes the panels of Figs. 1, 3, 4, 5,
 6 and S4 to `figures/reproduced/` — the header of `reproduce_figures.jl`
 lists the output-file-to-figure mapping — and prints key checkpoints as it
@@ -68,10 +68,8 @@ same fixed parameter set for both models. The stiff fractional ODE system
 
 ## Note on the viscoelastic quasiproperty 𝕍
 
-All simulations in the paper and in this repository — the FIKH baseline and
-the NN-FIKH model alike — use one fixed parameter set, including
-𝕍 = 4616 Pa·sᵅ (τ_c = (𝕍/G)^(1/α) ≈ 1933 s). Because every improvement
-reported in the paper is a relative comparison between the two models at this
+All simulations in the paper and in this repository, the FIKH baseline and
+the NN-FIKH model alike use one fixed parameter set as follows: \{$\mathbb{G}, \mathbb{V}, \alpha, \mathbb{K}, n,    1/\tau_{thix}, k_{-}, \sigma_p^0, C, q, m$\} = \{380 Pa, 4616 Pa$\cdot \mathrm{s}^\alpha$, 0.33, 4.66 Pa$\cdot \mathrm{s}^n$, 0.34, 0.08 $\mathrm{s}^{-1}$, 0.047, 15 Pa, 88 Pa, 3.67, 0.49\}. Because every improvement reported in the paper is a relative comparison between the two models at this
 shared, fixed parameter set, the results and conclusions do not depend on
 this choice.
 
@@ -83,7 +81,7 @@ subsequent dynamic simulations. This is why the G″ curve produced by
 `reproduce_figures.jl` for Fig. 1(a) lies below the data. Users who prefer
 the SAOS-optimal value can set `VV[] = 1616.0` in `src/nnfikh_model.jl` and
 retrain the network (the trained networks provided here correspond to
-𝕍 = 4616); comparable relative improvements of NN-FIKH over FIKH are
+𝕍 = 4616). Comparable relative improvements of NN-FIKH over FIKH are
 expected, since the learned corrections adapt to whichever base parameter
 set is held fixed.
 
