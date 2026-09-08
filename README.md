@@ -30,8 +30,8 @@ runs, e.g. the first-cycle stress peak at γ₀ = 500%, ω = 5 rad/s
 ├── src/
 │   └── nnfikh_model.jl       the NN-FIKH model: equations, data loaders, solvers
 ├── Example trained models/
-│   ├── twocycle_5input_run52.jld2   trained network (default in the driver)
-│   ├── twocycle_5input_run36.jld2   independently trained network
+│   ├── example_model_1.jld2  trained network (default in the driver)
+│   ├── example_model_2.jld2  independently trained network
 │   └── MODEL_CARD.md         architecture, inputs/outputs, how to load
 ├── data/
 │   ├── laos/                 22 oscillatory records: 18 training + 4 test (ω = 3 rad/s)
@@ -48,7 +48,7 @@ runs, e.g. the first-cycle stress peak at γ₀ = 500%, ω = 5 rad/s
 identical architecture. Both closely reproduce the NN-FIKH results of the
 paper, and their predictions nearly coincide — comparing them illustrates
 how tightly the embedded physics constrains the learned correction. The
-driver loads `run52` by default; to use the other, change the filename on
+driver loads `example_model_1.jld2` by default; to use the other, change the filename on
 the `load(...)` line of `reproduce_figures.jl`. Details in
 `Example trained models/MODEL_CARD.md`.
 

@@ -20,7 +20,7 @@
 #    fig6_internal_variables.png      Fig. 6  λ(t) and A(t), FIKH vs NN-FIKH
 #    figS4_swan_FIKH_vs_NNFIKH.png    Fig. S4  SWAN: FIKH vs NN-FIKH vs data
 #
-#  Loads Example trained models/twocycle_5input_run52.jld2 by default; the
+#  Loads Example trained models/example_model_1.jld2 by default; the
 #  same network is used for every figure ("one network, no retraining").
 #  See Example trained models/MODEL_CARD.md to swap in the other network.
 #  Runtime: ~5–10 min (mostly Julia compilation; solves take under a minute).
@@ -31,7 +31,7 @@ using Printf
 
 const OUT = "figures/reproduced/"
 mkpath(OUT)
-θ = ComponentArray(load("Example trained models/twocycle_5input_run52.jld2", "θi"))
+θ = ComponentArray(load("Example trained models/example_model_1.jld2", "θi"))
 load_data!()
 t0_all = time()
 stamp() = @sprintf("[%6.0f s]", time() - t0_all)

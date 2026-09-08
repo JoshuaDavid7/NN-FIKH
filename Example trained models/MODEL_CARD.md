@@ -5,7 +5,7 @@ closely reproduce the NN-FIKH results of the paper (Figs. 4, 5, 6 and S4),
 and their predictions nearly coincide (stress differences of order 1 Pa) —
 comparing them illustrates how tightly the embedded physics constrains the
 learned correction. Use whichever you prefer; `reproduce_figures.jl` loads
-`run52` by default.
+`example_model_1.jld2` by default.
 
 | property | value |
 |---|---|
@@ -20,7 +20,7 @@ Load with:
 
 ```julia
 using JLD2, ComponentArrays
-θ = ComponentArray(load("Example trained models/twocycle_5input_run52.jld2", "θi"))
+θ = ComponentArray(load("Example trained models/example_model_1.jld2", "θi"))
 ```
 
 The 11 physical FIKH parameters are **not** stored in these files — they are
